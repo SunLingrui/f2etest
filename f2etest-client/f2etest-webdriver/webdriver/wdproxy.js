@@ -20,6 +20,7 @@ var timeout = process.argv[5] || 60;
 
 var proxyPort = 4000 + nodeId;
 var webdriverPort = 5000 + nodeId;
+
 var server = http.createServer(function(req, res){
     var wdServer;
     if(req.url === '/wd/hub/session'){
@@ -34,60 +35,60 @@ var server = http.createServer(function(req, res){
                 var browserName = desiredCapabilities.browserName.toLowerCase();
                 var proxy = desiredCapabilities.proxy;
                 if(browserName === 'internet explorer'){
-					if(proxy){
-						var proxyType = proxy.proxyType || '';
-						proxyType = proxyType.toLowerCase()
-						var proxyAutoconfigUrl = proxy.proxyAutoconfigUrl;
-						var httpProxy = proxy.httpProxy;
-						switch(proxyType){
-							case 'manual':
-								if(httpProxy){
-									setProxy(httpProxy);
-								}
-								break;
-							case 'pac':
-								if(proxyAutoconfigUrl){
-									setPac(proxyAutoconfigUrl);
-								}
-								break;
-						}
-						desiredCapabilities.proxy = {
-							'proxyType': 'SYSTEM'
-						};
-						body = JSON.stringify(json);
-					}
-					else{
-						disableProxy();
-					}
+                    if(proxy){
+                        var proxyType = proxy.proxyType || '';
+                        proxyType = proxyType.toLowerCase();
+                        var proxyAutoconfigUrl = proxy.proxyAutoconfigUrl;
+                        var httpProxy = proxy.httpProxy;
+                        switch(proxyType){
+                            case 'manual':
+                                if(httpProxy){
+                                    setProxy(httpProxy);
+                                }
+                                break;
+                            case 'pac':
+                                if(proxyAutoconfigUrl){
+                                    setPac(proxyAutoconfigUrl);
+                                }
+                                break;
+                        }
+                        desiredCapabilities.proxy = {
+                            'proxyType': 'SYSTEM'
+                        };
+                        body = JSON.stringify(json);
+                    }
+                    else{
+                        disableProxy();
+                    }
                 }
-				else if(browserName === '360se'){
-					desiredCapabilities.browserName = 'chrome';
-					desiredCapabilities.chromeOptions = desiredCapabilities.chromeOptions || {};
-					desiredCapabilities.chromeOptions.binary = 'c:\\360\\360se6\\Application\\360se.exe';
-					desiredCapabilities.chromeOptions.args = ['--allow-no-sandbox-job', '--disable-bundled-ppapi-flash'];
+                else if(browserName === '360se'){
+                    desiredCapabilities.browserName = 'chrome';
+                    desiredCapabilities.chromeOptions = desiredCapabilities.chromeOptions || {};
+                    desiredCapabilities.chromeOptions.binary = 'c:\\360\\360se6\\Application\\360se.exe';
+                    desiredCapabilities.chromeOptions.args = ['--allow-no-sandbox-job', '--disable-bundled-ppapi-flash'];
                     desiredCapabilities.chromeOptions.prefs = {
                         'plugins.plugins_disabled': ['Adobe Flash Player']
                     };
-					body = JSON.stringify(json);
-				}
-				else if(browserName === '360chrome'){
-					desiredCapabilities.browserName = 'chrome';
-					desiredCapabilities.chromeOptions = desiredCapabilities.chromeOptions || {};
-					desiredCapabilities.chromeOptions.binary = 'c:\\360\\360Chrome\\Chrome\\Application\\360chrome.exe';
-					desiredCapabilities.chromeOptions.args = ['--allow-no-sandbox-job', '--disable-bundled-ppapi-flash'];
+                    body = JSON.stringify(json);
+                }
+                else if(browserName === '360chrome'){
+                    desiredCapabilities.browserName = 'chrome';
+                    desiredCapabilities.chromeOptions = desiredCapabilities.chromeOptions || {};
+                    desiredCapabilities.chromeOptions.binary = 'c:\\360\\360Chrome\\Chrome\\Application\\360chrome.exe';
+                    desiredCapabilities.chromeOptions.args = ['--allow-no-sandbox-job', '--disable-bundled-ppapi-flash'];
                     desiredCapabilities.chromeOptions.prefs = {
                         'plugins.plugins_disabled': ['Adobe Flash Player']
                     };
-					body = JSON.stringify(json);
-				}
-				else if(browserName === 'chrome'){
-					desiredCapabilities.chromeOptions = desiredCapabilities.chromeOptions || {};
-					desiredCapabilities.chromeOptions.args = ['--allow-no-sandbox-job', '--disable-bundled-ppapi-flash'];
+                    body = JSON.stringify(json);
+                }
+                else if(browserName === 'chrome'){
+                    desiredCapabilities.chromeOptions = desiredCapabilities.chromeOptions || {};
+                    desiredCapabilities.chromeOptions.args = ['--allow-no-sandbox-job', '--disable-bundled-ppapi-flash'];
                     desiredCapabilities.chromeOptions.prefs = {
                         'plugins.plugins_disabled': ['Adobe Flash Player']
                     };
-					body = JSON.stringify(json);
-				}
+                    body = JSON.stringify(json);
+                }
             }
             catch(e){}
             var headers = req.headers;
@@ -119,7 +120,7 @@ var server = http.createServer(function(req, res){
             res.writeHead(wdRes.statusCode, wdRes.headers);
             wdRes.pipe(res);
         });
-        wdServer.on('error', function (err) {
+        wdServer.on('error', function () {
             res.end();
         });
         req.pipe(wdServer);
@@ -130,18 +131,17 @@ server.listen(proxyPort, function(){
     console.log('F2etest WebDriver proxy is ready: %s', proxyPort);
     var jarPath = path.resolve(__dirname, './selenium-server-standalone-2.53.1.jar');
     cp.spawn('java', [
-            '-jar',
-            jarPath,
-            '-port',
-            webdriverPort,
-            '-timeout',
-            timeout,
-            '-browserTimeout',
-            timeout
-        ], {
-            stdio: 'inherit'
-        }
-    );
+        '-jar',
+        jarPath,
+        '-port',
+        webdriverPort,
+        '-timeout',
+        timeout,
+        '-browserTimeout',
+        timeout
+    ], {
+        stdio: 'inherit'
+    });
     setTimeout(checkWorkStatus, 3000);
 });
 
@@ -162,12 +162,11 @@ function checkWorkStatus(){
             try{
                 var json = JSON.parse(body);
                 if(json.status === 0){
-                    wdStatus = json.value.length > 0 ? 2: 1;
+                    wdStatus = json.value.length > 0 ? 2 : 1;
                 }
             }
             catch(e){}
             reportToF2etest(wdStatus);
-
         });
     }).on('error', function(){
         reportToF2etest(0);
@@ -177,7 +176,7 @@ function checkWorkStatus(){
 }
 
 function reportToF2etest(wdStatus){
-    var reportUrl = 'http://'+f2etestHost+'/reportWdNode?nodename='+nodeName+'&browsers='+encodeURIComponent(browsers)+'&rdp=1&status='+wdStatus;
+    var reportUrl = 'http://' + f2etestHost + '/reportWdNode?nodename=' + nodeName + '&browsers=' + encodeURIComponent(browsers) + '&rdp=1&status=' + wdStatus;
     var urlInfo = url.parse(reportUrl);
     http.get({
         hostname: urlInfo.hostname,
@@ -185,32 +184,62 @@ function reportToF2etest(wdStatus){
         path: urlInfo.path,
         agent: false
     }, function(res){
-        if(res.statusCode === 200){
-            // console.log('Report to f2etest: '+wdStatus);
-        }
-        else{
+        if(res.statusCode !== 200){
             console.log('Report to f2etest failed!');
         }
-    }).on('error', function(e){
+    }).on('error', function(){
         console.log('Report to f2etest failed!');
     });
 }
 
+function validateProxyHost(proxyHost){
+    if(typeof proxyHost !== 'string'){
+        throw new Error('Invalid proxy host');
+    }
+
+    // allow common host:port style values only
+    // examples: 127.0.0.1:8080, proxy.example.com:3128
+    if(!/^[a-zA-Z0-9.\-:]+$/.test(proxyHost)){
+        throw new Error('Unsafe proxy host value');
+    }
+
+    if(proxyHost.length > 255){
+        throw new Error('Proxy host too long');
+    }
+}
+
+function validatePacUrl(pacUrl){
+    if(typeof pacUrl !== 'string'){
+        throw new Error('Invalid PAC url');
+    }
+
+    if(pacUrl.length > 2048){
+        throw new Error('PAC url too long');
+    }
+
+    // only allow http / https URLs
+    if(!/^https?:\/\/[^\s]+$/i.test(pacUrl)){
+        throw new Error('Unsafe PAC url value');
+    }
+}
+
 function setProxy(proxyHost){
-    cp.execSync('reg add "'+proxyPath+'" /v "ProxyEnable" /t REG_DWORD /d "1" /f >nul');
-    cp.execSync('reg add "'+proxyPath+'" /v "AutoConfigURL" /d "" /f >nul');
-    cp.execSync('reg add "'+proxyPath+'" /v "ProxyServer" /d "'+proxyHost+'" /f >nul');
+    validateProxyHost(proxyHost);
+    cp.execSync('reg add "' + proxyPath + '" /v "ProxyEnable" /t REG_DWORD /d "1" /f >nul');
+    cp.execSync('reg add "' + proxyPath + '" /v "AutoConfigURL" /d "" /f >nul');
+    cp.execSync('reg add "' + proxyPath+'" /v "ProxyServer" /d "'+proxyHost+'" /f >nul');
     console.log('System proxy inited:', proxyHost);
 }
 
 function setPac(pacUrl){
-    cp.execSync('reg add "'+proxyPath+'" /v "ProxyEnable" /t REG_DWORD /d "0" /f >nul');
-    cp.execSync('reg add "'+proxyPath+'" /v "AutoConfigURL" /d "'+pacUrl+'" /f >nul');
+    validatePacUrl(pacUrl);
+    cp.execSync('reg add "' + proxyPath + '" /v "ProxyEnable" /t REG_DWORD /d "0" /f >nul');
+    cp.execSync('reg add "' + proxyPath + '" /v "AutoConfigURL" /d "' + pacUrl + '" /f >nul');
     console.log('System proxy inited:', pacUrl);
 }
 
 function disableProxy(){
-    cp.execSync('reg add "'+proxyPath+'" /v "ProxyEnable" /t REG_DWORD /d "0" /f >nul');
-    cp.execSync('reg add "'+proxyPath+'" /v "AutoConfigURL" /d "" /f >nul');
+    cp.execSync('reg add "' + proxyPath + '" /v "ProxyEnable" /t REG_DWORD /d "0" /f >nul');
+    cp.execSync('reg add "' + proxyPath + '" /v "AutoConfigURL" /d "" /f >nul');
     console.log('System proxy disabled');
 }
